@@ -1,8 +1,23 @@
-1、安装依赖
+安装依赖
+
+```
 yarn
+```
 
-2、运行
-npm run dev
+配置 url
 
-3、运行监控
-pm2 start ./bin/www (这里需要在服务器里全局安装pm2)
+```
+npm run build --dtFetchUrl=http://shendis.srm.qa.ithinkdt.com  --dtFileUrl=http://shendis.srm.qa.ithinkdt.com
+```
+
+运行
+
+```
+npm run dev --dtFetchUrl=
+```
+
+运行监控
+
+```
+pm2 start ./bin/www
+```

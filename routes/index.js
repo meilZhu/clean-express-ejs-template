@@ -1,32 +1,64 @@
-/*
- * @fileName: 
- * @file: 
- * @Date: 2020-02-10 11:35:11
- * @author: manyao.zhu
- */
 /***
- * @FileName: 首页路由
- * @Author: manyao.zhu
- * @Date: 2019-12-17 11:45:19
- */
+ * @FileName: 首页路由
+ * @Author: manyao.zhu
+ * @Date: 2019-12-17 11:45:19
+ */
 var express = require('express');
 var router = express.Router();
 
-const indexService = require('../fetch/service/index.service')
-const resultBean = require('../utils/result-bean')
+const _route = { index: require('./viewRoutes/index') }; // 模块化处理
 
-/* GET home page. */
-router.get('/', function(req, res, next) {
-  res.render('index');
+const indexService = require('../fetch/service/index.service');
+const resultBean = require('../utils/result-bean');
+
+let url = 'str',
+  routes = [],
+  skip = true,
+  renderParam = {};
+
+// 该路由使用的中间件
+router.use(function timeLog(req, res, next) {
+  console.log('view::' + req.path, Date.now());
+  url = (req.path.endsWith('/') ? req.path + 'index' : req.path).slice(1);
+  routes = req.path.split('/');
+  renderParam = {
+    path: url,
+    queryData: req.query || {},
+    paramsData: req.params || {}
+  };
+  next();
 });
 
-router.post('/try', (req, res, next) => {
-  indexService.login({username:req.body.username, password:req.body.password}).then(result=> {
-    if (result.status) {
-      req.session.access_token = result.data;
-      res.send(resultBean.success('登录成功'))
+// 路由转发
+router.use('/', function(req, res, next) {
+  //目前我们支持二层的url结构
+  if (routes.length === 3) {
+    try {
+      let fun = _route[routes[1]] && _route[routes[1]][routes[2]];
+      if (fun && fun !== null) {
+        skip = false;
+        fun(req, res, function(data, err) {
+          if (err) {
+            next(err);
+          } else {
+            renderParam.data = data;
+            res.render(url, renderParam);
+          }
+        });
+      }
+    } catch (e) {
+      console.error(e);
+      throw e;
     }
-  })
-})
+  }
+  if (skip) {
+    res.render(url, renderParam);
+  }
+});
 
+/* GET home page */
+// router.get('/product', function(req, res, next) {
+//   console.log(1);
+//   res.render('product');
+// });  (若需要存服务端渲染，且还需要调用接口，就用这种直接路由)
 module.exports = router;

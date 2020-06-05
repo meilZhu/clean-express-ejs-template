@@ -1,0 +1,1 @@
+module.exports = "http://shendis.srm.qa.ithinkdt.com/api/v1";
